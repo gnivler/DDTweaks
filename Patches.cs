@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using App.Common;
-using BepInEx.Configuration;
 using HarmonyLib;
 using QxFramework.Utilities;
 
@@ -22,7 +21,6 @@ public static class Patches
             {
                 DDTweaks.harmony.Patch(AccessTools.Method(typeof(PeopleUpgradeManager), nameof(PeopleUpgradeManager.GetUpgradeBookUse)), null,
                     new HarmonyMethod(typeof(Books), nameof(GetUpgradeBookUsePostfix)));
-                FileLog.Log($"Patched GetUpgradeBookUse");
                 DDTweaks.harmony.PatchAll(typeof(Books));
             }
         }
@@ -65,7 +63,6 @@ public static class Patches
 
     public static void Patch()
     {
-        FileLog.Log("Patching DDTweaks");
         DDTweaks.Log.LogWarning("Settings:");
         foreach (var field in typeof(ModSettings).GetFields())
         {
