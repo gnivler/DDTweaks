@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using App.Common;
 using HarmonyLib;
+using QxFramework.Core;
 using QxFramework.Utilities;
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
@@ -14,6 +15,39 @@ namespace DDTweaks;
 
 public static class Patches
 {
+    public static void Patch()
+    {
+        DDTweaks.Log.LogWarning("Settings:");
+        foreach (var field in typeof(ModSettings).GetFields())
+        {
+            var valueProperty = field.FieldType.GetProperty("Value");
+            DDTweaks.Log.LogWarning($"{field.Name}: {valueProperty?.GetValue(field.GetValue(DDTweaks.modSettings))}");
+        }
+
+        if (DDTweaks.modSettings.books.Value < 1)
+        {
+            DDTweaks.harmony.PatchAll(typeof(Books.Init));
+        }
+
+        if (DDTweaks.modSettings.tires.Value < 1)
+        {
+            var orig = AccessTools.Method(typeof(Travel), "Init");
+            var postfix = AccessTools.Method(typeof(Tires), nameof(Tires.InitPostfix));
+            DDTweaks.harmony.Patch(orig, null, new HarmonyMethod(postfix));
+        }
+
+        DDTweaks.Log.LogWarning("4");
+        if (DDTweaks.modSettings.buyJunk.Value)
+        {
+            DDTweaks.harmony.PatchAll(typeof(Junk));
+        }
+
+        if (DDTweaks.modSettings.easyClose.Value)
+        {
+            DDTweaks.harmony.PatchAll(typeof(EasyClose));
+        }
+    }
+
     internal static class Books
     {
         internal static class Init
@@ -63,34 +97,6 @@ public static class Patches
         }
     }
 
-    public static void Patch()
-    {
-        DDTweaks.Log.LogWarning("Settings:");
-        foreach (var field in typeof(ModSettings).GetFields())
-        {
-            var valueProperty = field.FieldType.GetProperty("Value");
-            DDTweaks.Log.LogWarning($"{field.Name}: {valueProperty?.GetValue(field.GetValue(DDTweaks.modSettings))}");
-        }
-
-        if (DDTweaks.modSettings.books.Value < 1)
-        {
-            DDTweaks.harmony.PatchAll(typeof(Books.Init));
-        }
-
-        if (DDTweaks.modSettings.tires.Value < 1)
-        {
-            var orig = AccessTools.Method(typeof(Travel), "Init");
-            var postfix = AccessTools.Method(typeof(Tires), nameof(Tires.InitPostfix));
-            DDTweaks.harmony.Patch(orig, null, new HarmonyMethod(postfix));
-        }
-
-        if (DDTweaks.modSettings.buyJunk.Value)
-        {
-            DDTweaks.harmony.PatchAll(typeof(Junk));
-        }
-    }
-
-
     internal static class Junk
     {
         [HarmonyPatch(typeof(NewEventUI), "OnDisplay")]
@@ -114,5 +120,20 @@ public static class Patches
         }
         // Canvas/Layer 2/BarWindow(Clone)/BarWindow/ScrollRect/ViewPort/Content/BarPeopleItem(Clone)/Button/Text  Buy Junk
         // Canvas/Layer Event/NewEventUI(Clone)/Main/BG3/Scroll View/ViewPort/Content/NewEventChooseButton(Clone)  Buy 8 Compounds
+    }
+
+    internal static class EasyClose
+    {
+        [HarmonyPatch(typeof(UIBase), "OnDisplay")]
+        public static void Postfix(ref UIBase __instance)
+        {
+            // ReSharper disable once StringLiteralTypo
+            List<string> notToHook = ["Start_UI", "Main_UI", "CommandUI", "ArchivementMainUI", "AchievementMainUI"];
+            var name = __instance.name;
+            if (notToHook.Any(s => name.StartsWith(s)))
+                return;
+            // FileLog.Log($"hooking {name}");
+            __instance.gameObject.AddComponent<EasyCloser>();
+        }
     }
 }

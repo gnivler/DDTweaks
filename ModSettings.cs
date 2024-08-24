@@ -8,5 +8,5 @@ public class ModSettings
     public ConfigEntry<float> tires;
 
     public ConfigEntry<bool> buyJunk;
-    // public ConfigEntry<int> extraTraits;
+    public ConfigEntry<bool> easyClose;
 }
