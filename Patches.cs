@@ -66,7 +66,6 @@ public static class Patches
         DDTweaks.Log.LogWarning("Settings:");
         foreach (var field in typeof(ModSettings).GetFields())
         {
-            var value = field.GetValue(DDTweaks.modSettings);
             var valueProperty = field.FieldType.GetProperty("Value");
             DDTweaks.Log.LogWarning($"{field.Name}: {valueProperty?.GetValue(field.GetValue(DDTweaks.modSettings))}");
         }
