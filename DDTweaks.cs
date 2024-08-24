@@ -10,8 +10,8 @@ namespace DDTweaks;
 public class DDTweaks : BaseUnityPlugin
 {
     internal static ManualLogSource Log;
-    internal static ModSettings modSettings = new();
-    internal static Harmony harmony = new("DDTweaks");
+    internal static readonly ModSettings modSettings = new();
+    internal static readonly Harmony harmony = new("DDTweaks");
 
     private void Awake()
     {

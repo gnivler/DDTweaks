@@ -106,7 +106,7 @@ public static class Patches
                     {
                         var itemName = match.Groups[1].Value;
                         var myCount = GameMgr.Get<IItemManager>()?.GetAllGoodsInCar()?.FirstOrDefault(g => g.Name == itemName)?.GoodsCout ?? 0;
-                        FileLog.Log($"Item Name: {itemName} (have {myCount})");
+                        // FileLog.Log($"Item Name: {itemName} (have {myCount})");
                         m.ChooseText = m.ChooseText.Replace("]", $" (have {myCount})]");
                     }
                 }
