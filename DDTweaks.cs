@@ -10,9 +10,9 @@ namespace DDTweaks;
 public class DDTweaks : BaseUnityPlugin
 {
     internal static ManualLogSource Log;
-    internal static ModSettings modSettings = new();
-    internal static Harmony harmony = new("DDTweaks");
-
+    internal static ModSettings modSettings = new ();
+    internal static Harmony harmony = new ("DDTweaks");
+    
     private void Awake()
     {
         // Plugin startup logic
@@ -24,5 +24,6 @@ public class DDTweaks : BaseUnityPlugin
             "Vanilla is false.  True will show you \"(have 25)\" of something when considering buying junk in bars");
         // modSettings.extraTraits = Config.Bind("General", "Extra trait slots", 0, "Anything over zero adds extra slots for traits");
         Patches.Patch();
+
     }
 }
