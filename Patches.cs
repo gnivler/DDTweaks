@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using App.Common;
 using HarmonyLib;
 using QxFramework.Utilities;
@@ -81,5 +83,36 @@ public static class Patches
             var postfix = AccessTools.Method(typeof(Tires), nameof(Tires.InitPostfix));
             DDTweaks.harmony.Patch(orig, null, new HarmonyMethod(postfix));
         }
+
+        if (DDTweaks.modSettings.buyJunk.Value)
+        {
+            DDTweaks.harmony.PatchAll(typeof(Junk));
+        }
+    }
+
+
+    internal static class Junk
+    {
+        [HarmonyPatch(typeof(NewEventUI), "OnDisplay")]
+        public static void Prefix(object args)
+        {
+            var chooseMessage = (ChooseMessage)args;
+            foreach (var m in chooseMessage.ChooseList)
+            {
+                if (m.ChooseText.StartsWith("[Buy "))
+                {
+                    var match = Regex.Match(m.ChooseText, @"\d+\s(.+)]");
+                    if (match.Success)
+                    {
+                        var itemName = match.Groups[1].Value;
+                        var myCount = GameMgr.Get<IItemManager>()?.GetAllGoodsInCar()?.FirstOrDefault(g => g.Name == itemName)?.GoodsCout ?? 0;
+                        FileLog.Log($"Item Name: {itemName} (have {myCount})");
+                        m.ChooseText = m.ChooseText.Replace("]", $" (have {myCount})]");
+                    }
+                }
+            }
+        }
+        // Canvas/Layer 2/BarWindow(Clone)/BarWindow/ScrollRect/ViewPort/Content/BarPeopleItem(Clone)/Button/Text  Buy Junk
+        // Canvas/Layer Event/NewEventUI(Clone)/Main/BG3/Scroll View/ViewPort/Content/NewEventChooseButton(Clone)  Buy 8 Compounds
     }
 }
