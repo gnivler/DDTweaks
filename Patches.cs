@@ -7,6 +7,8 @@ using App.Common;
 using HarmonyLib;
 using QxFramework.Core;
 using QxFramework.Utilities;
+using UnityEngine;
+using UnityEngine.UI;
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable InconsistentNaming
@@ -36,15 +38,9 @@ public static class Patches
             DDTweaks.harmony.Patch(orig, null, new HarmonyMethod(postfix));
         }
 
-        DDTweaks.Log.LogWarning("4");
         if (DDTweaks.modSettings.buyJunk.Value)
         {
             DDTweaks.harmony.PatchAll(typeof(Junk));
-        }
-
-        if (DDTweaks.modSettings.easyClose.Value)
-        {
-            DDTweaks.harmony.PatchAll(typeof(EasyClose));
         }
     }
 
@@ -120,20 +116,5 @@ public static class Patches
         }
         // Canvas/Layer 2/BarWindow(Clone)/BarWindow/ScrollRect/ViewPort/Content/BarPeopleItem(Clone)/Button/Text  Buy Junk
         // Canvas/Layer Event/NewEventUI(Clone)/Main/BG3/Scroll View/ViewPort/Content/NewEventChooseButton(Clone)  Buy 8 Compounds
-    }
-
-    internal static class EasyClose
-    {
-        [HarmonyPatch(typeof(UIBase), "OnDisplay")]
-        public static void Postfix(ref UIBase __instance)
-        {
-            // ReSharper disable once StringLiteralTypo
-            List<string> notToHook = ["Start_UI", "Main_UI", "CommandUI", "ArchivementMainUI", "AchievementMainUI"];
-            var name = __instance.name;
-            if (notToHook.Any(s => name.StartsWith(s)))
-                return;
-            // FileLog.Log($"hooking {name}");
-            __instance.gameObject.AddComponent<EasyCloser>();
-        }
     }
 }
