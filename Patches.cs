@@ -5,10 +5,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using App.Common;
 using HarmonyLib;
-using QxFramework.Core;
 using QxFramework.Utilities;
-using UnityEngine;
-using UnityEngine.UI;
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable InconsistentNaming
@@ -100,19 +97,21 @@ public static class Patches
         {
             var chooseMessage = (ChooseMessage)args;
             foreach (var m in chooseMessage.ChooseList)
-            {
                 if (m.ChooseText.StartsWith("[Buy "))
                 {
                     var match = Regex.Match(m.ChooseText, @"\d+\s(.+)]");
                     if (match.Success)
                     {
                         var itemName = match.Groups[1].Value;
-                        var myCount = GameMgr.Get<IItemManager>()?.GetAllGoodsInCar()?.FirstOrDefault(g => g.Name == itemName)?.GoodsCout ?? 0;
-                        // FileLog.Log($"Item Name: {itemName} (have {myCount})");
-                        m.ChooseText = m.ChooseText.Replace("]", $" (have {myCount})]");
+                        var materials = MonoSingleton<Data>.Instance.Get<ItemData>().sources;
+                        foreach (var i in materials)
+                            if (itemName.StartsWith(i.Name))
+                            {
+                                m.ChooseText = m.ChooseText.Replace("]", $" (have {i.GoodsCout})]");
+                                break;
+                            }
                     }
                 }
-            }
         }
         // Canvas/Layer 2/BarWindow(Clone)/BarWindow/ScrollRect/ViewPort/Content/BarPeopleItem(Clone)/Button/Text  Buy Junk
         // Canvas/Layer Event/NewEventUI(Clone)/Main/BG3/Scroll View/ViewPort/Content/NewEventChooseButton(Clone)  Buy 8 Compounds
