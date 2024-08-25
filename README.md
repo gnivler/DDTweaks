@@ -24,7 +24,7 @@ Features:
 
      `otherwise just melee to death (coup de gras) with one keypress`
 
-     The key will intentionally do nothing if you're in melee range.
+     The key will intentionally do nothing if you're in melee range and might be wounded.
 </td>
 </tr>
 </table>
