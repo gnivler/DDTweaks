@@ -4,7 +4,27 @@ unpack BepInEx to the game folder as in this install guide https://docs.bepinex.
 
 then place the mod in the `Dustland Delivery/BepInEX/plugins/` folder
 
-Now when the game runs BepInEx also runs, and loads the mods.  A config file is created at first run at `Dustland Delivery/BepInEX/plugins/DDTweaks.cfg`
-edit the numbers in there and re-run the game
+Now when the game runs BepInEx also runs, and loads the mods.  
 
-You can reduce books usage (to zero if you want) and tire wear separately.
+__A config file is created at first run at `Dustland Delivery/BepInEX/plugins/DDTweaks.cfg`__
+
+__edit the numbers in there and re-run the game__
+<table>
+<tr>
+<td>
+Features:
+
+* Tire wear scaling (to zero - **no change by default**)
+* Book usage scaling (to zero - **no change by default**)
+* Show your own materials stock when buying from scavengers (**on by default**)
+* *EasyClose* feature whereby you can right-click to close the top window or use Esc to close everything. (**on by default**)
+* *QuickCombat* feature whereby you can press Enter to pick a safe choice during fights.  (**on by default**)
+
+     `if enemy damage might wound in melee: fire volley and advanced a round if ammo is available`
+
+     `otherwise just melee to death (coup de gras) with one keypress`
+
+     The key will intentionally do nothing if you're in melee range.
+</td>
+</tr>
+</table>
