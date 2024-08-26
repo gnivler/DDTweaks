@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using App.Common;
+using EventLogicSystem;
 using HarmonyLib;
+using QxFramework.Core;
 using QxFramework.Utilities;
 
 // ReSharper disable CompareOfFloatsByEqualityOperator
@@ -38,6 +41,56 @@ public static class Patches
         if (DDTweaks.modSettings.buyJunk.Value)
         {
             DDTweaks.harmony.PatchAll(typeof(Junk));
+        }
+
+        if (DDTweaks.modSettings.itemRarity.Value)
+        {
+            DDTweaks.harmony.PatchAll(typeof(Rarity));
+        }
+    }
+
+    internal static class Rarity
+    {
+        [HarmonyPatch(typeof(PeopleUpgradeManager), "UsePointToGetBuff")]
+        [HarmonyPostfix]
+        public static void Postfix(Personal b, int Book)
+        {
+            GameMgr.Get<IPeopleManager>().GetBuffSelections(b, new List<int>(), 10, out var dictionary);
+            FileLog.Log($"[] ");
+            foreach (var key in dictionary)
+            {
+                FileLog.Log($"][ {key.Key}: {key.Value}");
+            }
+        }
+
+        // this is brittle and repetitive, but the game needs to be refactored
+        private const string equipPattern = @"(.*?) \(<color=(#[A-Fa-f0-9]{6})>.*?</color>\)";
+        private const string foodPattern = @"<color=(#[A-Fa-f0-9]{6})>\[.+\] (.+)<\/color>";
+        private const string equipReplacement = "<color=$2>$1</color>";
+        private const string foodReplacement = "<color=$1>$2</color>";
+
+        private static readonly Dictionary<string, string[]> replacements = new Dictionary<string, string[]>
+        {
+            { "Equip", [equipPattern, equipReplacement] },
+            { "Food", [foodPattern, foodReplacement] }
+        };
+
+        [HarmonyPatch(typeof(Equip), "Name", MethodType.Getter)]
+        [HarmonyPostfix]
+        public static void EquipNameGetterPostfix(Items __instance, ref string __result) => ChangeString(__instance, ref __result);
+
+        [HarmonyPatch(typeof(Food), "FullName", MethodType.Getter)]
+        [HarmonyPostfix]
+        public static void FoodFullNameGetterPostfix(Items __instance, ref string __result) => ChangeString(__instance, ref __result);
+
+        private static void ChangeString(Items __instance, ref string __result)
+        {
+            if (string.IsNullOrEmpty(__result))
+                return;
+
+            var key = __instance.GetType().Name;
+            if (replacements.TryGetValue(key, out _))
+                __result = Regex.Replace(__result, replacements[key][0], replacements[key][1]);
         }
     }
 

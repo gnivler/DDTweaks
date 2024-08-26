@@ -10,4 +10,6 @@ public class ModSettings
     public ConfigEntry<bool> buyJunk;
     public ConfigEntry<bool> easyClose;
     public ConfigEntry<bool> quickCombat;
+    public ConfigEntry<bool> itemRarity;
+    
 }
