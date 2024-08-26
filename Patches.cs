@@ -51,18 +51,6 @@ public static class Patches
 
     internal static class Rarity
     {
-        [HarmonyPatch(typeof(PeopleUpgradeManager), "UsePointToGetBuff")]
-        [HarmonyPostfix]
-        public static void Postfix(Personal b, int Book)
-        {
-            GameMgr.Get<IPeopleManager>().GetBuffSelections(b, new List<int>(), 10, out var dictionary);
-            FileLog.Log($"[] ");
-            foreach (var key in dictionary)
-            {
-                FileLog.Log($"][ {key.Key}: {key.Value}");
-            }
-        }
-
         // this is brittle and repetitive, but the game needs to be refactored
         private const string equipPattern = @"(.*?) \(<color=(#[A-Fa-f0-9]{6})>.*?</color>\)";
         private const string foodPattern = @"<color=(#[A-Fa-f0-9]{6})>\[.+\] (.+)<\/color>";
