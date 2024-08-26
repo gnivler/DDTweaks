@@ -16,15 +16,12 @@ public class QuickCombat : MonoBehaviour
             && mgr.GetCurrentBattle() is { CurDistance: > 1 } curBattle)
         {
             var lowestDefense = curBattle.CurBattlePersonal.Values.Min(p => p.Defend);
-            var enemyDamage = (int)((string.IsNullOrEmpty(curBattle.SelfCity) ?
-                MonoSingleton<Data>.Instance.Get<AutoData>()._autoMain.FightValue 
-                : MonoSingleton<Data>.Instance.Get<CurrentSelfCityData>().SelfCities[curBattle.SelfCity].GetCityBattle()) * (1f - curBattle.EnemyPersonal.battleSpaecialStatus.DownDamage / 100f));
-            enemyDamage = Mathf.Clamp((int)(curBattle.EnemyBattle * (1f + curBattle.EnemyPersonal.battleSpaecialStatus.Fang / 100f)) - enemyDamage, 0, int.MaxValue);
+            var enemyDamage = Mathf.Clamp((int)(curBattle.EnemyBattle * (1f + curBattle.EnemyPersonal.battleSpaecialStatus.Fang / 100f)), 0, int.MaxValue);
             var battleWindowNew = FindObjectOfType<BattleWindowNew>();
-            // FileLog.Log(enemyDamage.ToString());
+            DDTweaks.Log.LogWarning("<> " + enemyDamage);
             if (enemyDamage < lowestDefense)
             {
-                // FileLog.Log($"<> Coup de gras: {curBattle.EnemyBattle} < {lowestDefense}");
+                DDTweaks.Log.LogWarning($"<> Coup de gras: {curBattle.EnemyBattle} < {lowestDefense}");
                 mgr.PushForward(false, int.MaxValue);
                 battleWindowNew.Fight();
             }
