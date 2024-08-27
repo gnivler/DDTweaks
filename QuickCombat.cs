@@ -1,9 +1,6 @@
 ﻿using System.Linq;
-using App.Common;
-using HarmonyLib;
-using QxFramework.Utilities;
 using UnityEngine;
-using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace DDTweaks;
 
@@ -15,7 +12,7 @@ public class QuickCombat : MonoBehaviour
             && GameMgr.Get<IBattleManager>() is { } mgr
             && mgr.GetCurrentBattle() is { CurDistance: > 1 } curBattle)
         {
-            var lowestDefense = curBattle.CurBattlePersonal.Values.Min(p => p.Defend);
+            var lowestDefense = curBattle.CurBattlePersonal?.Values.Min(p => p.Defend);
             var enemyDamage = Mathf.Clamp((int)(curBattle.EnemyBattle * (1f + curBattle.EnemyPersonal.battleSpaecialStatus.Fang / 100f)), 0, int.MaxValue);
             var battleWindowNew = FindObjectOfType<BattleWindowNew>();
             DDTweaks.Log.LogWarning("<> " + enemyDamage);
@@ -30,16 +27,9 @@ public class QuickCombat : MonoBehaviour
                 battleWindowNew = FindObjectOfType<BattleWindowNew>();
                 var shootButton = battleWindowNew._gos["BattleBtnShoot"];
                 var nextButton = battleWindowNew._gos["BattleBtnNext"];
-                ClickButton(shootButton);
-                System.Threading.Tasks.Task.Delay(300).ContinueWith(_ => ClickButton(nextButton));
+                shootButton.GetComponent<Button>().onClick.Invoke();
+                System.Threading.Tasks.Task.Delay(300).ContinueWith(_ => nextButton.GetComponent<Button>().onClick.Invoke());
             }
         }
-    }
-
-    private void ClickButton(GameObject button)
-    {
-        var pointerClickEvent = new PointerEventData(EventSystem.current);
-        pointerClickEvent.position = Vector2.zero;
-        ExecuteEvents.Execute(button, pointerClickEvent, ExecuteEvents.pointerClickHandler);
     }
 }
