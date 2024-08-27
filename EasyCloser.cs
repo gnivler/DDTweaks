@@ -1,22 +1,27 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices.ComTypes;
 using HarmonyLib;
 using QxFramework.Core;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace DDTweaks;
 
 public class EasyCloser : MonoBehaviour
 {
     private readonly FieldInfo _openUI = AccessTools.Field(typeof(UIManager), "_openUI");
-    private readonly List<string> _notToHook = ["Start_UI", "Main_UI", "CommandUI", "ArchivementMainUI", "AchievementMainUI"];
-    
+    private readonly Vector2 _screenCenter = new(Screen.width / 2, Screen.height / 2);
+    private readonly FieldInfo _buttonList = AccessTools.Field(typeof(DialogWindowUI), "_buttonList");
 
     private bool IsIgnoredUI(UIBase ui) =>
-        ui is NewEventUI or MainUI or ArchivementMainUI or HintUI or NewMapUI or LoadingUI
-            or UnderAttackUI or WareHouseWindow or DialogWindowUI;
+        ui.GetComponentInChildren<Choose>() is not null
+        // is a WareHouse that isn't at our location (eg caravan) or another caravan logic?  just avoid closing caravan trades
+        || ui is NewEventUI or MainUI or ArchivementMainUI or HintUI or NewMapUI or LoadingUI or SCBattleWindow or BattleWindowNew
+            or UnderAttackUI or WareHouseWindow or OverseaVersionStartUI or PlotUI;
 
     private void Update()
     {
@@ -29,54 +34,57 @@ public class EasyCloser : MonoBehaviour
 
     private void DoClose(bool closeAll = false)
     {
-        var list = (List<KeyValuePair<string, UIBase>>)_openUI.GetValue(UIManager.Instance);
-        if (list.Count <= 1)
-            return;
         if (closeAll)
         {
-            for (var index = 0; index < list.Count; index++)
-            {
-                var kvp = list[index];
-                if (kvp.Value == null
-                    || IsIgnoredUI(kvp.Value))
-                    continue;
-                if (!_notToHook.Any(s => kvp.Value.name.StartsWith(s)))
-                {
-                    // FileLog.Log("<> Closing: " + kvp.Value.ToString());
-                    UIManager.Instance.Close(kvp.Value);
-                }
-            }
+            var openUI = (List<KeyValuePair<string, UIBase>>)_openUI.GetValue(UIManager.Instance);
+            for (var index = 0; index < openUI.Count; index++)
+                Close();
         }
         else
+            Close();
+
+        void Close()
         {
-            var anyUiWillDo = FindObjectOfType<UIBase>();
-            var topWindow = GetTopWindow(anyUiWillDo);
-            if (!_notToHook.Any(s => topWindow.name.StartsWith(s)) && !IsIgnoredUI(topWindow))
-                UIManager.Instance.Close(topWindow);
+            var ui = GetTopWindow();
+            if (!ui || IsIgnoredUI(ui))
+                return;
+            // if the DialogWindowUI just has one button, click it, otherwise do nothing.  This ensures certain UIs still
+            // appearing when chain-launched from another dialog having just a single button
+            if (ui is DialogWindowUI)
+            {
+                var uiButtonList = (Transform)_buttonList.GetValue(ui);
+                var activeButtons = uiButtonList.GetComponentsInChildren<Button>().Where(b => b.interactable).ToArray();
+                if (activeButtons.Length == 1)
+                {
+                    DDTweaks.Log.LogWarning("<> Closing: " + ui.GetType().Name);
+                    activeButtons[0].onClick.Invoke();
+                }
+            }
+            else
+            {
+                DDTweaks.Log.LogWarning("<> Closing: " + ui.GetType().Name);
+                UIManager.Instance.Close(ui);
+            }
         }
     }
 
-
-    private UIBase GetTopWindow(UIBase window)
+    private UIBase GetTopWindow()
     {
-        if (IsIgnoredUI(window))
-            return null;
-
-        if (window.transform.parent is null)
-            return window;
-
-        var parent = window.transform.parent;
-        var result = default(UIBase);
-        for (int i = 0; i < parent.childCount; i++)
+        var results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current) { position = _screenCenter }, results);
+        var openUI = ((List<KeyValuePair<string, UIBase>>)_openUI.GetValue(UIManager.Instance)).Select(kvp => kvp.Value).ToList();
+        foreach (var result in results.Where(x => x.gameObject))
         {
-            var child = parent.GetChild(i);
-            if (child.GetSiblingIndex() == parent.childCount - 1)
-            {
-                result = child.GetComponentInParent<UIBase>();
-                break;
-            }
+            var hitObject = result.gameObject;
+            var uiBase = hitObject?.GetComponentInParent<UIBase>();
+            if (!hitObject
+                || !uiBase
+                || !openUI.Contains(uiBase))
+                continue;
+            DDTweaks.Log.LogInfo($"GetTopWindow: {uiBase.GetType().Name}");
+            return uiBase;
         }
 
-        return result;
+        return null;
     }
 }

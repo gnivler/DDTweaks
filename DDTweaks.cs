@@ -25,6 +25,7 @@ public class DDTweaks : BaseUnityPlugin
         modSettings.easyClose = Config.Bind("General", "Allow easy closing of windows", true, "Allow closing of windows, with right-click for top-most and Esc to close all at once");
         modSettings.quickCombat = Config.Bind("General", "Enter to fight", true, "Executes a coup-de-gras if it's safe, otherwise does a full volley if you have the ammo");
         modSettings.itemRarity = Config.Bind("General", "Item qualities", true, "Superior equipment and food strings are themselves coloured instead of tagged with a modifier word that is coloured");
+        modSettings.profitSliders = Config.Bind("General", "Profit sliders", true, "Trading sliders will try to jump to the most potential profit");
         Patches.Patch();
         if (modSettings.easyClose.Value)
             gameObject.AddComponent<EasyCloser>();

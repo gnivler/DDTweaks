@@ -11,5 +11,5 @@ public class ModSettings
     public ConfigEntry<bool> easyClose;
     public ConfigEntry<bool> quickCombat;
     public ConfigEntry<bool> itemRarity;
-    
+    public ConfigEntry<bool> profitSliders;
 }
