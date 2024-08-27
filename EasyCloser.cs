@@ -49,7 +49,7 @@ public class EasyCloser : MonoBehaviour
             if (!ui || IsIgnoredUI(ui))
                 return;
             // if the DialogWindowUI just has one button, click it, otherwise do nothing.  This ensures certain UIs still
-            // appearing when chain-launched from another dialog having just a single button
+            // appear when chain-launched from another dialog having just a single button
             if (ui is DialogWindowUI)
             {
                 var uiButtonList = (Transform)_buttonList.GetValue(ui);
