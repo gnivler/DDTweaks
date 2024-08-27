@@ -27,7 +27,7 @@ public class QuickCombat : MonoBehaviour
             if (curWindow is null)
                 return;
 
-            if (enemyDamage < lowestDefense)
+            if (enemyDamage < lowestDefense && curBattle.EnemyPersonal.battleSpaecialStatus.Boom == 0)
             {
                 DDTweaks.Log.LogWarning($"<> Coup de gras: {curBattle.EnemyBattle} < {lowestDefense}");
                 mgr.PushForward(false, int.MaxValue);
