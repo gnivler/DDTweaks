@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections;
 using System.Linq;
 using HarmonyLib;
 using QxFramework.Core;
@@ -35,13 +35,37 @@ public class QuickCombat : MonoBehaviour
             }
             else if (mgr.AllShoot())
             {
-                var shootButton = curWindow._gos["BattleBtnShoot"];
-                var nextButton = curWindow._gos["BattleBtnNext"];
-                var defendButton = curWindow._gos["BattleBtnDefend"];
-                var secondButton = defendButton ?? nextButton;
-                shootButton.GetComponent<Button>().onClick.Invoke();
-                System.Threading.Tasks.Task.Delay(300).ContinueWith(_ => secondButton.GetComponent<Button>().onClick.Invoke());
+                StartCoroutine(SimulateButtonClicks());
             }
         }
+    }
+
+
+    private IEnumerator SimulateButtonClicks()
+    {
+        var curWindow = GetCurWindow();
+        if (curWindow is null)
+            yield break;
+
+        var shootButton = curWindow!._gos["BattleBtnShoot"];
+        var nextButton = curWindow._gos["BattleBtnNext"];
+        var defendButton = curWindow._gos["BattleBtnDefend"];
+        var secondButton = defendButton.GetComponent<Image>().enabled ? defendButton : nextButton;
+        shootButton.GetComponent<Button>().onClick.Invoke();
+        yield return new WaitForSeconds(0.35f);
+        // Choose the appropriate second button
+        secondButton.GetComponent<Button>().onClick.Invoke();
+    }
+
+    private static UIBase GetCurWindow()
+    {
+        var battleWindowNew = FindObjectOfType<BattleWindowNew>();
+        var scBattleWindow = FindObjectOfType<SCBattleWindow>();
+        var curWindow = default(UIBase);
+        if (battleWindowNew is not null)
+            curWindow = battleWindowNew;
+        else if (scBattleWindow is not null)
+            curWindow = scBattleWindow;
+        return curWindow;
     }
 }
