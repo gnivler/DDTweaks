@@ -1,6 +1,6 @@
 Super easy to use:
 
-unpack BepInEx `x64` to the game folder as in this install guide https://docs.bepinex.dev/articles/user_guide/installation/index.html
+unpack BepInEx5 `x64` to the game folder as in this install guide https://docs.bepinex.dev/articles/user_guide/installation/index.html
 
 then place the mod in the `Dustland Delivery/BepInEX/plugins/` folder
 
