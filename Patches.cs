@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using App.Common;
-using EventLogicSystem;
 using HarmonyLib;
-using HarmonyLib.Tools;
-using QxFramework.Core;
 using QxFramework.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
@@ -49,7 +45,7 @@ public static class Patches
         if (DDTweaks.modSettings.profitSliders.Value)
             DDTweaks.harmony.PatchAll(typeof(ProfitSliders));
 
-        if (File.Exists("C:\\SteamLibrary\\Dustland Delivery\\BepInEx\\plugins\\dummyFile"))
+        if (File.Exists("C:\\SteamLibrary\\Dustland Delivery\\BepInEx\\plugins\\gnivler"))
         {
             DDTweaks.Log.LogWarning("gnivler mode");
             DDTweaks.harmony.PatchAll(typeof(gnivler));
@@ -117,32 +113,35 @@ public static class Patches
                 var price = marketMgr.GetPrice(goods.Id, stock, isBuy ? 1 : -1, isBuy);
                 // DDTweaks.Log.LogWarning($"GetPrice returned {price} for {i} {goods} with city stock at {stock} (Buy? {isBuy})");
                 var valToCompare = isBuy ? Math.Max(price, unitCost) : Math.Min(price, unitCost);
-                var profit = (goods.Price - valToCompare) * i;
-                if (!isBuy)
-                    profit = Math.Abs(profit);
-
-                if ((profit < 0 && i == 1) // low-stock goods come up "red" profit immediately
-                    ||
-                    profit < 0
+                float profit;
+                if (isBuy)
+                    profit = (goods.Price - valToCompare) * i;
+                else
+                    profit = (valToCompare - goods.Price) * i;
+                if (profit < 0 // low-stock goods come up "red" profit immediately
                     || price < unitCost && isBuy
                     || price > unitCost && !isBuy
                     || profit < best)
                     break;
-
                 best = profit;
                 numToTrade = i;
                 DDTweaks.Log.LogWarning($"{i} => Price: {price}, Profit: {profit}, Volume: {numToTrade}/{howManyGoodsToCheck}");
             }
 
-            var percent = (float)numToTrade / howManyGoodsToCheck;
-            slider.SetValueWithoutNotify(percent);
+            if (best > 0)
+            {
+                var percent = (float)numToTrade / howManyGoodsToCheck;
+                DDTweaks.Log.LogError(percent);
+                slider.SetValueWithoutNotify(percent);
+            }
         }
 
         // slight vanilla rewrite avoids trying to get cityData when we don't even need it (and it throws, missing a null check)
         [HarmonyPatch(typeof(MarketManager), "GetPrice", typeof(int), typeof(int), typeof(int), typeof(bool))]
-        public static bool Prefix(int id, int citycount, int playercount, bool IsBuy, MarketManager __instance, ref float __result)
+        public static void Prefix(ref bool __runOriginal, int id, int citycount, int playercount, bool IsBuy, MarketManager __instance, ref float __result)
         {
-            if (genericMethod == null) return false;
+            __runOriginal = false;
+            if (genericMethod == null) return;
             var flag1 = false;
             var flag2 = false;
             var num1 = 1f;
@@ -179,8 +178,6 @@ public static class Patches
                     ? (float)((num4 - (double)num5) / (num2 - (double)num3) * (citycount - playercount - (double)num2)) + num4
                     : num5
                 : num4) * num6 * num1;
-
-            return false;
         }
     }
 
