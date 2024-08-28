@@ -17,16 +17,7 @@ public class QuickCombat : MonoBehaviour
         {
             var lowestDefense = curBattle.CurBattlePersonal.Values.Min(p => p.Defend);
             var enemyDamage = Mathf.Clamp((int)(curBattle.EnemyBattle * (1f + curBattle.EnemyPersonal.battleSpaecialStatus.Fang / 100f)), 0, int.MaxValue);
-            var battleWindowNew = FindObjectOfType<BattleWindowNew>();
-            var scBattleWindow = FindObjectOfType<SCBattleWindow>();
-            var curWindow = default(UIBase);
-            if (battleWindowNew is not null)
-                curWindow = battleWindowNew;
-            else if (scBattleWindow is not null)
-                curWindow = scBattleWindow;
-            if (curWindow is null)
-                return;
-
+            var curWindow = GetCurWindow();
             if (enemyDamage < lowestDefense && curBattle.EnemyPersonal.battleSpaecialStatus.Boom == 0)
             {
                 DDTweaks.Log.LogWarning($"<> Coup de gras: {curBattle.EnemyBattle} < {lowestDefense}");
@@ -40,14 +31,13 @@ public class QuickCombat : MonoBehaviour
         }
     }
 
-
     private IEnumerator SimulateButtonClicks()
     {
         var curWindow = GetCurWindow();
         if (curWindow is null)
             yield break;
 
-        var shootButton = curWindow!._gos["BattleBtnShoot"];
+        var shootButton = curWindow._gos["BattleBtnShoot"];
         var nextButton = curWindow._gos["BattleBtnNext"];
         var defendButton = curWindow._gos["BattleBtnDefend"];
         var secondButton = defendButton.GetComponent<Image>().enabled ? defendButton : nextButton;
@@ -61,11 +51,8 @@ public class QuickCombat : MonoBehaviour
     {
         var battleWindowNew = FindObjectOfType<BattleWindowNew>();
         var scBattleWindow = FindObjectOfType<SCBattleWindow>();
-        var curWindow = default(UIBase);
         if (battleWindowNew is not null)
-            curWindow = battleWindowNew;
-        else if (scBattleWindow is not null)
-            curWindow = scBattleWindow;
-        return curWindow;
+            return battleWindowNew;
+        return scBattleWindow;
     }
 }
