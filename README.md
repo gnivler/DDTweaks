@@ -1,6 +1,6 @@
 Super easy to use:
 
-unpack BepInEx to the game folder as in this install guide https://docs.bepinex.dev/articles/user_guide/installation/index.html
+unpack BepInEx `x64` to the game folder as in this install guide https://docs.bepinex.dev/articles/user_guide/installation/index.html
 
 then place the mod in the `Dustland Delivery/BepInEX/plugins/` folder
 
@@ -8,7 +8,7 @@ Now when the game runs BepInEx also runs, and loads the mods.
 
 __A config file is created at first run at `Dustland Delivery/BepInEX/plugins/DDTweaks.cfg`__
 
-__edit the numbers in there and re-run the game__
+__edit that as needed, and re-run the game__
 <table>
 <tr>
 <td>
