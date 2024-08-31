@@ -25,9 +25,7 @@ public class QuickCombat : MonoBehaviour
                 AccessTools.Method(curWindow.GetType(), "Fight").Invoke(curWindow, []);
             }
             else if (mgr.AllShoot())
-            {
                 StartCoroutine(SimulateButtonClicks());
-            }
         }
     }
 
@@ -36,23 +34,14 @@ public class QuickCombat : MonoBehaviour
         var curWindow = GetCurWindow();
         if (curWindow is null)
             yield break;
-
         var shootButton = curWindow._gos["BattleBtnShoot"];
         var nextButton = curWindow._gos["BattleBtnNext"];
         var defendButton = curWindow._gos["BattleBtnDefend"];
         var secondButton = defendButton.GetComponent<Image>().enabled ? defendButton : nextButton;
         shootButton.GetComponent<Button>().onClick.Invoke();
         yield return new WaitForSeconds(0.35f);
-        // Choose the appropriate second button
         secondButton.GetComponent<Button>().onClick.Invoke();
     }
 
-    private static UIBase GetCurWindow()
-    {
-        var battleWindowNew = FindObjectOfType<BattleWindowNew>();
-        var scBattleWindow = FindObjectOfType<SCBattleWindow>();
-        if (battleWindowNew is not null)
-            return battleWindowNew;
-        return scBattleWindow;
-    }
+    private static UIBase GetCurWindow() => (UIBase) FindObjectOfType<BattleWindowNew>() ?? FindObjectOfType<SCBattleWindow>();
 }

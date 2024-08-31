@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using App.Common;
+using BehaviorDesigner.Runtime.Tasks.Basic.UnityGameObject;
 using HarmonyLib;
+using QxFramework.Core;
 using QxFramework.Utilities;
 using UnityEngine;
 using UnityEngine.UI;
@@ -17,6 +20,14 @@ namespace DDTweaks;
 
 public static class Patches
 {
+    internal static void Log(object message)
+    {
+        if (!DDTweaks.gnivler)
+            return;
+        DDTweaks.Log.LogWarning(message);
+        FileLog.Log(message.ToString());
+    }
+
     public static void Patch()
     {
         DDTweaks.Log.LogWarning("Settings:");
@@ -47,13 +58,61 @@ public static class Patches
 
         if (File.Exists("C:\\SteamLibrary\\Dustland Delivery\\BepInEx\\plugins\\gnivler"))
         {
-            DDTweaks.Log.LogWarning("gnivler mode");
+            DDTweaks.gnivler = true;
+            Log("gnivler mode");
             DDTweaks.harmony.PatchAll(typeof(gnivler));
         }
     }
 
     internal static class gnivler
     {
+        [HarmonyPatch(typeof(TradePanel), "OnDisplay")]
+        public static void Postfix(TradePanel __instance)
+        {
+            var cloneSource = __instance.transform.Find("FractionWindow/OutPutBG").gameObject;
+            var clone = Object.Instantiate(cloneSource, cloneSource.transform.parent.parent, true);
+            clone.name = "NeedsSummary";
+            var rt = clone.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(350, 800);
+            var text = clone.transform.Find("OutputDes").gameObject.GetComponent<Text>();
+            text.name = "NeedsSummaryText";
+            text.text = "Some Test Text\n" +
+                        "Another line\n" +
+                        "A third line that is much longer to break it";
+            rt.Translate(100, 0, 0);
+        }
+
+        // private static void LogMessage(Type msgId, EventArgs param, object sender)
+        // {
+        //     FileLog.Log($"<> {msgId} from {sender}: {((HintMessage)param).Content}");
+        // }
+
+        // [HarmonyPatch(typeof(MessageQueue<HookType>), "DispatchMessage")]
+        // [HarmonyPostfix]
+        // public static void Postfix(MessageQueue<HookType> __instance, Type msgId, EventArgs param) => LogMessage(msgId, param);
+
+
+        // [HarmonyPatch(typeof(MessageQueue<HintType>), "DispatchMessage")]
+        // [HarmonyPostfix]
+        // public static void Postfix(MessageQueue<HintType> __instance, object sender, Type msgId, EventArgs param) => LogMessage(msgId, param, sender);
+
+        // [HarmonyPatch(typeof(MessageQueue<LocalizationMsg>), "DispatchMessage")]
+        // [HarmonyPostfix]
+        // public static void LocalizationMsgPostfix(MessageQueue<LocalizationMsg> __instance) => FileLog.Log("LocalizationMsg " + __instance);
+        //
+        // [HarmonyPatch(typeof(MessageQueue<RoadRegionMessageType>), "DispatchMessage")]
+        // [HarmonyPostfix]
+        // public static void RoadRegionMessageTypePostfix(MessageQueue<RoadRegionMessageType> __instance) => FileLog.Log("RoadRegionMessageType " + __instance);
+        //
+        // [HarmonyPatch(typeof(MessageQueue<LogType>), "DispatchMessage")]
+        // [HarmonyPostfix]
+        // public static void Postfix(MessageQueue<LogType> __instance) => FileLog.Log("LogType " + __instance);
+        //
+        // [HarmonyPatch(typeof(MessageQueue<WeatherMsg>), "DispatchMessage")]
+        // [HarmonyPostfix]
+        // public static void Postfix(MessageQueue<WeatherMsg> __instance) => FileLog.Log("WeatherMsg " + __instance);
+
+
         // the audio grinds on my neurons
         [HarmonyPatch(typeof(SoundMain), "SetState")]
         public static void Postfix(SoundMain __instance) => __instance.transform.Find("StateSound/Danger").GetComponent<AudioSource>().volume = 0;
@@ -63,121 +122,91 @@ public static class Patches
     {
         private static readonly MethodInfo method = typeof(GameMgr).GetMethod("Get", []);
         private static readonly Type iCity = AccessTools.TypeByName("ICityManager");
-        private static readonly MethodInfo genericMethod = method?.MakeGenericMethod(iCity);
-        private static readonly CityManager cityMgr = (CityManager)genericMethod.Invoke(null, null);
-
+        private static readonly MethodInfo iCityManagerGet = method?.MakeGenericMethod(iCity);
+        private static readonly CityManager cityMgr = (CityManager)iCityManagerGet.Invoke(null, null);
 
         // if a 3rd becomes needed maybe look at writing a collection processor
-        [HarmonyPatch(typeof(PurchasePanel), "OnDisplay")]
-        public static void Postfix(PurchasePanel __instance, bool ___isBuy, Goods ___goods)
+        [HarmonyPatch(typeof(ShopWindowBase), "OpenPurchaseUI")]
+        public static void Postfix(bool isBuy, int goodID)
         {
-            var piece = (float)AccessTools.PropertyGetter(typeof(PurchasePanel), "SinglePiece").Invoke(__instance, []);
-            SliderToBestPrice(__instance, ___isBuy, ___goods, piece);
+            var panel = (SliderUI)Object.FindObjectOfType<PurchasePanel>() ?? Object.FindObjectOfType<CaravanPurchasePanel>();
+            var goods = (Goods)AccessTools.Field(panel.GetType(), "goods").GetValue(panel);
+            Log($"{panel} {(isBuy ? "buying" : "selling")} {goods.Object?.Name}");
+            SliderToBestPrice(panel, isBuy, goods);
         }
 
-        [HarmonyPatch(typeof(CaravanPurchasePanel), "OnDisplay")]
-        public static void Postfix(CaravanPurchasePanel __instance, bool ___isBuy, Goods ___goods)
-        {
-            var piece = (float)AccessTools.PropertyGetter(typeof(CaravanPurchasePanel), "SinglePiece").Invoke(__instance, []);
-            SliderToBestPrice(__instance, ___isBuy, ___goods, piece);
-        }
-
-        private static void SliderToBestPrice(SliderUI panel, bool isBuy, Goods goods, float unitCost)
+        private static void SliderToBestPrice(SliderUI panel, bool isBuy, Goods goods)
         {
             var slider = Object.FindObjectOfType<Slider>();
             int numToTrade = default, myStock = default, traderStock = default;
             float best = default;
             var itemMgr = GameMgr.Get<IItemManager>();
             var marketMgr = GameMgr.Get<IMarketManager>();
-
+            CaravanTradeArgs caravanTradeArgs = default;
             switch (panel)
             {
                 case PurchasePanel:
                     myStock = itemMgr.GetGoodsCout(goods.Object.Id);
                     traderStock = goods.Count;
                     break;
-                case CaravanPurchasePanel:
-                    var caravanArgs = (CaravanTradeArgs)AccessTools.Field(typeof(CaravanPurchasePanel), "Args").GetValue(panel);
-                    var goodsStore = (GoodsStore)caravanArgs.selfCity.Modules.Find(m => m is GoodsStore);
+                case CaravanPurchasePanel caravanPurchasePanel:
+                    caravanTradeArgs = caravanPurchasePanel.Args;
+                    var goodsStore = (GoodsStore)caravanTradeArgs.selfCity.Modules.Find(m => m is GoodsStore);
                     myStock = goodsStore.storeData.GetItemCount(goods.Object.Id);
-                    var goodsList = marketMgr.GetMarket(caravanArgs.tradeCity.CityId, caravanArgs.mapID).GoodsList;
-                    DDTweaks.Log.LogWarning($"GoodsList? {goodsList}, goods.Id: {goods.Id}");
-                    traderStock = marketMgr.GetMarket(caravanArgs.tradeCity.CityId, caravanArgs.mapID).GoodsList.Find(g => g.Id == goods.Id).Count;
+                    traderStock = marketMgr.GetMarket(caravanTradeArgs.tradeCity.CityId, caravanTradeArgs.mapID).GoodsList.Find(g => g.Id == goods.Id).Count;
                     break;
             }
 
-            var howManyGoodsToCheck = isBuy ? traderStock : myStock;
-            for (var i = 1; i <= howManyGoodsToCheck; i++)
+            var availableStock = isBuy ? traderStock : myStock;
+            Log($"{(isBuy ? "buying" : "selling")} {goods.Object?.Name} with available stock at {availableStock}");
+            for (var i = 1; i <= availableStock; i++)
             {
                 var stock = isBuy ? goods.Count - i + 1 : goods.Count + i - 1;
-                var price = marketMgr.GetPrice(goods.Id, stock, isBuy ? 1 : -1, isBuy);
-                // DDTweaks.Log.LogWarning($"GetPrice returned {price} for {i} {goods} with city stock at {stock} (Buy? {isBuy})");
-                var valToCompare = isBuy ? Math.Max(price, unitCost) : Math.Min(price, unitCost);
+                float adjPrice = default;
+                switch (panel)
+                {
+                    case PurchasePanel:
+                        adjPrice = marketMgr.GetPrice(goods.Id, stock, isBuy ? 1 : -1, isBuy);
+                        break;
+                    case CaravanPurchasePanel purchasePanel:
+                    {
+                        adjPrice = GameMgr.Get<IMarketManager>()
+                            .GetPrice(caravanTradeArgs.tradeCity.CityId, caravanTradeArgs.mapID, goods.Id, goods.Count, isBuy ? 1 * i : -1 * i, isBuy);
+                        break;
+                    }
+                }
+
+                var unitCost = (float)AccessTools.PropertyGetter(panel.GetType(), "SinglePiece").Invoke(panel, []);
+                var valToCompare = isBuy ? Math.Max(adjPrice, unitCost) : Math.Min(adjPrice, unitCost);
                 float profit;
                 if (isBuy)
                     profit = (goods.Price - valToCompare) * i;
                 else
                     profit = (valToCompare - goods.Price) * i;
+                profit = Convert.ToInt32(profit);
+                // the base game isn't properly rounding the Profit it displays on the UI currently so the slider
+                // can appear to be 1 off from best but in fact this result is more correct than the UI displayed value.  nominal difference in any case
+                Log($"Volume: {i}/{availableStock} => adjPrice: {adjPrice}, Profit: {profit}");
                 if (profit < 0 // low-stock goods come up "red" profit immediately
-                    || price < unitCost && isBuy
-                    || price > unitCost && !isBuy
+                    || (adjPrice < unitCost && isBuy)
+                    || (adjPrice > unitCost && !isBuy)
                     || profit < best)
+                {
+                    Log(
+                        $"Break: profit < 0: {profit < 0} (adjPrice < unitCost && isBuy): {adjPrice < unitCost && isBuy} (adjPrice > unitCost && !isBuy): {adjPrice > unitCost && !isBuy} profit < best: {profit < best} (unitCost {unitCost})");
                     break;
+                }
+
                 best = profit;
                 numToTrade = i;
-                DDTweaks.Log.LogWarning($"{i} => Price: {price}, Profit: {profit}, Volume: {numToTrade}/{howManyGoodsToCheck}");
             }
 
             if (best > 0)
             {
-                var percent = (float)numToTrade / howManyGoodsToCheck;
-                DDTweaks.Log.LogError(percent);
+                var percent = (float)numToTrade / availableStock;
+                Log($"{goods.Object?.Name} slider percent: {percent}");
                 slider.SetValueWithoutNotify(percent);
             }
-        }
-
-        // slight vanilla rewrite avoids trying to get cityData when we don't even need it (and it throws, missing a null check)
-        [HarmonyPatch(typeof(MarketManager), "GetPrice", typeof(int), typeof(int), typeof(int), typeof(bool))]
-        public static void Prefix(ref bool __runOriginal, int id, int citycount, int playercount, bool IsBuy, MarketManager __instance, ref float __result)
-        {
-            __runOriginal = false;
-            if (genericMethod == null) return;
-            var flag1 = false;
-            var flag2 = false;
-            var num1 = 1f;
-            if (cityMgr.TryGetCityModule<SpecialGoods>(id, out var cityModule1) && cityModule1.SpecialGoodsType.Contains(id))
-                flag1 = true;
-            if (cityMgr.TryGetCityModule<LackGoods>(id, out var cityModule2) && cityModule2.LackGoodsType.Contains(id))
-                flag2 = true;
-#pragma warning disable Harmony003
-            var num2 = MonoSingleton<Data>.Instance.TableAgent.GetFloat("Shop", id.ToString(), "LowValue");
-            var num3 = MonoSingleton<Data>.Instance.TableAgent.GetFloat("Shop", id.ToString(), "HighValue");
-            var num4 = MonoSingleton<Data>.Instance.TableAgent.GetFloat("Shop", id.ToString(), "HighPrice");
-            var num5 = MonoSingleton<Data>.Instance.TableAgent.GetFloat("Shop", id.ToString(), "LowPrice");
-            var num6 = IsBuy ? 1.1f : 1f;
-            if (flag1)
-            {
-                num2 = MonoSingleton<Data>.Instance.TableAgent.GetFloat("Shop", id.ToString(), "LowMinValue");
-                num3 = MonoSingleton<Data>.Instance.TableAgent.GetFloat("Shop", id.ToString(), "HighValue");
-                num4 = MonoSingleton<Data>.Instance.TableAgent.GetFloat("Shop", id.ToString(), "HighPrice");
-                num5 = MonoSingleton<Data>.Instance.TableAgent.GetFloat("Shop", id.ToString(), "MinPrice");
-                num1 = IsBuy ? 0.8f : 0.75f;
-            }
-            else if (flag2)
-            {
-                num2 = MonoSingleton<Data>.Instance.TableAgent.GetFloat("Shop", id.ToString(), "LowValue");
-                num3 = MonoSingleton<Data>.Instance.TableAgent.GetFloat("Shop", id.ToString(), "HighMaxValue");
-                num4 = MonoSingleton<Data>.Instance.TableAgent.GetFloat("Shop", id.ToString(), "MaxPrice");
-                num5 = MonoSingleton<Data>.Instance.TableAgent.GetFloat("Shop", id.ToString(), "LowPrice");
-#pragma warning restore Harmony003
-                num1 = IsBuy ? 1.25f : 1.2f;
-            }
-
-            __result = (citycount - playercount >= (double)num2
-                ? citycount - playercount <= (double)num3
-                    ? (float)((num4 - (double)num5) / (num2 - (double)num3) * (citycount - playercount - (double)num2)) + num4
-                    : num5
-                : num4) * num6 * num1;
         }
     }
 

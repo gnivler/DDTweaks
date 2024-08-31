@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <AssemblyName>DDTweaks</AssemblyName>
         <Product>DDTweaks</Product>
-        <Version>1.3.2</Version>
+        <Version>1.3.3</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <RestoreAdditionalProjectSources>
@@ -36,32 +36,33 @@
         <PackageReference Include="BepInEx.Core" Version="5.*"/>
         <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*"/>
 <!--        <PackageReference Include="UnityEngine.Modules" Version="2019.4.26" IncludeAssets="compile"/>-->
-        <Publicize Include="DDTweaks" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
         <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all"/>
-    </ItemGroup>
-    
+    </ItemGroup>    
    
     <ItemGroup>
       <Reference Include="Assembly-CSharp"  Publicize="true">
         <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\Assembly-CSharp.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine">
+      <Reference Include="UnityEngine" Publicize="true">
         <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\UnityEngine.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine.AudioModule">
+      <Reference Include="UnityEngine.AudioModule" Publicize="true">
         <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine.CoreModule">
+      <Reference Include="UnityEngine.CoreModule" Publicize="true">
         <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine.InputLegacyModule">
+      <Reference Include="UnityEngine.InputLegacyModule" Publicize="true">
         <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine.UI">
+      <Reference Include="UnityEngine.UI" Publicize="true">
         <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\UnityEngine.UI.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UIModule" Publicize="true">
+        <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\UnityEngine.UIModule.dll</HintPath>
       </Reference>
     </ItemGroup>
 

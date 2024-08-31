@@ -14,12 +14,11 @@ public class EasyCloser : MonoBehaviour
     private readonly FieldInfo _openUI = AccessTools.Field(typeof(UIManager), "_openUI");
     private readonly Vector2 _screenCenter = new(Screen.width / 2, Screen.height / 2);
     private readonly FieldInfo _buttonList = AccessTools.Field(typeof(DialogWindowUI), "_buttonList");
-
-    private bool IsIgnoredUI(UIBase ui) =>
-        ui.GetComponentInChildren<Choose>() is not null
-        // is a WareHouse that isn't at our location (eg caravan) or another caravan logic?  just avoid closing caravan trades
-        || ui is NewEventUI or MainUI or ArchivementMainUI or HintUI or NewMapUI or LoadingUI or SCBattleWindow or BattleWindowNew
-            or UnderAttackUI or WareHouseWindow or OverseaVersionStartUI or PlotUI;
+    private readonly List<RaycastResult> _raycastResultsList = [];
+    
+    private bool IsIgnoredUI(UIBase ui) => ui.GetComponentInChildren<Choose>() is not null // ignores anything with selections in it
+                                           || ui is NewEventUI or MainUI or ArchivementMainUI or HintUI or NewMapUI or LoadingUI
+                                               or SCBattleWindow or BattleWindowNew or UnderAttackUI or OverseaVersionStartUI or PlotUI;
 
     private void Update()
     {
@@ -68,16 +67,14 @@ public class EasyCloser : MonoBehaviour
 
     private UIBase GetTopWindow()
     {
-        var results = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current) { position = _screenCenter }, results);
+        _raycastResultsList.Clear();
+        EventSystem.current.RaycastAll(new PointerEventData(EventSystem.current) { position = _screenCenter }, _raycastResultsList);
         var openUI = ((List<KeyValuePair<string, UIBase>>)_openUI.GetValue(UIManager.Instance)).Select(kvp => kvp.Value).ToList();
-        foreach (var result in results.Where(x => x.gameObject))
+        foreach (var result in _raycastResultsList.Where(x => x.gameObject))
         {
             var hitObject = result.gameObject;
             var uiBase = hitObject?.GetComponentInParent<UIBase>();
-            if (!hitObject
-                || !uiBase
-                || !openUI.Contains(uiBase))
+            if (!hitObject || !uiBase || !openUI.Contains(uiBase))
                 continue;
             DDTweaks.Log.LogInfo($"GetTopWindow: {uiBase.GetType().Name}");
             return uiBase;

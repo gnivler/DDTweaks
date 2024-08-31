@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
 
@@ -10,6 +9,7 @@ namespace DDTweaks;
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 public class DDTweaks : BaseUnityPlugin
 {
+    internal static bool gnivler;
     internal static ManualLogSource Log;
     internal static readonly ModSettings modSettings = new();
     internal static readonly Harmony harmony = new("DDTweaks");
@@ -32,4 +32,14 @@ public class DDTweaks : BaseUnityPlugin
         if (modSettings.quickCombat.Value)
             gameObject.AddComponent<QuickCombat>();
     }
+
+    // private void Update()
+    // {
+    //     
+    //     if (Input.GetKeyDown(KeyCode.Backspace))
+    //     {
+    //         FileLog.Log("Backspace");
+    //         Singleton<MessageManager>.Instance._queues.Do(x => FileLog.Log($"** {x.Key} {x.Value}"));
+    //     }
+    // }
 }
