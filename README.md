@@ -17,6 +17,8 @@ Features:
 * Tire wear scaling (to zero - **no change by default**)
 * Book usage scaling (to zero - **no change by default**)
 * Show your own materials stock when buying from scavengers (**on by default**)
+  ![image](https://github.com/user-attachments/assets/58258d4a-2543-41f6-950d-e8468388b64f)
+
 * *EasyClose* feature: you can right-click to close the top window or use Esc to close everything. (**on by default**)
 * *QuickCombat* feature: you can press Enter to pick a safe choice during fights.  (**on by default**)
 
