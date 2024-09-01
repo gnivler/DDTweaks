@@ -26,6 +26,10 @@ Features:
 
      The key will intentionally do nothing if you're in melee range and might be wounded.
 * *ItemRarity* feature: superior equipment and food strings are themselves coloured instead of tagged with a modifier word that is coloured. (**on by default**).
+
+     ![image](https://github.com/user-attachments/assets/ba6486e7-e60f-4b1e-bd7d-d08cdedd9dee)
+
+
 * *ProfitSliders* feature: sets the trading slider to the optimal profit value when able.  (**on by default**).
 </td>
 </tr>
