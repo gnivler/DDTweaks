@@ -33,6 +33,10 @@ Features:
 
 
 * *ProfitSliders* feature: sets the trading slider to the optimal profit value when able.  (**on by default**).
+* *TradePanel* feature: summarizes existing trade routes and production at the current city
+  ![Screenshot 2024-09-04 133440](https://github.com/user-attachments/assets/fc70fbdc-88d6-4594-950c-f1b52b5d48dc)
+* *Trait re-roller* feature: spend books to get new random selections when picking traits.
+  ![roll](https://github.com/user-attachments/assets/c4e5587e-1b96-45f2-9f70-a14fba56a5ab)
 </td>
 </tr>
 </table>
