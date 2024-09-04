@@ -12,4 +12,7 @@ public class ModSettings
     public ConfigEntry<bool> quickCombat;
     public ConfigEntry<bool> itemRarity;
     public ConfigEntry<bool> profitSliders;
+    public ConfigEntry<bool> tradeDetails;
+    // public ConfigEntry<bool> peopleView;
+    public ConfigEntry<bool> reroll;
 }

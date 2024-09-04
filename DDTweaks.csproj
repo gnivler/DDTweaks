@@ -43,25 +43,28 @@
     </ItemGroup>    
    
     <ItemGroup>
-      <Reference Include="Assembly-CSharp"  Publicize="true">
+      <Reference Include="Assembly-CSharp" Publicize="true">
         <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\Assembly-CSharp.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine" Publicize="true">
+      <Reference Include="UnityEngine">
         <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\UnityEngine.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine.AudioModule" Publicize="true">
+      <Reference Include="UnityEngine.AudioModule">
         <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine.CoreModule" Publicize="true">
+      <Reference Include="UnityEngine.CoreModule">
         <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine.InputLegacyModule" Publicize="true">
+      <Reference Include="UnityEngine.InputLegacyModule">
         <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine.UI" Publicize="true">
+      <Reference Include="UnityEngine.TextRenderingModule">
+        <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UI">
         <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\UnityEngine.UI.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEngine.UIModule" Publicize="true">
+      <Reference Include="UnityEngine.UIModule">
         <HintPath>C:\SteamLibrary\Dustland Delivery\DustlandDelivery_Data\Managed\UnityEngine.UIModule.dll</HintPath>
       </Reference>
     </ItemGroup>

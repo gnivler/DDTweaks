@@ -6,6 +6,7 @@ using QxFramework.Core;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using static DDTweaks.Patches;
 
 namespace DDTweaks;
 
@@ -15,7 +16,7 @@ public class EasyCloser : MonoBehaviour
     private readonly Vector2 _screenCenter = new(Screen.width / 2, Screen.height / 2);
     private readonly FieldInfo _buttonList = AccessTools.Field(typeof(DialogWindowUI), "_buttonList");
     private readonly List<RaycastResult> _raycastResultsList = [];
-    
+
     private bool IsIgnoredUI(UIBase ui) => ui.GetComponentInChildren<Choose>() is not null // ignores anything with selections in it
                                            || ui is NewEventUI or MainUI or ArchivementMainUI or HintUI or NewMapUI or LoadingUI
                                                or SCBattleWindow or BattleWindowNew or UnderAttackUI or OverseaVersionStartUI or PlotUI;
@@ -60,6 +61,10 @@ public class EasyCloser : MonoBehaviour
             else
             {
                 DDTweaks.Log.LogWarning("<> Closing: " + ui.GetType().Name);
+                // cleanup manual UI here because I haven't figured out a better way yet. pretty heavyweight approach
+                var group = FindObjectsOfType<Component>().Where(c => c.gameObject.name.StartsWith("DDTweaks"));
+                foreach (var customUI in group)
+                    Destroy(customUI.gameObject);
                 UIManager.Instance.Close(ui);
             }
         }
@@ -76,7 +81,7 @@ public class EasyCloser : MonoBehaviour
             var uiBase = hitObject?.GetComponentInParent<UIBase>();
             if (!hitObject || !uiBase || !openUI.Contains(uiBase))
                 continue;
-            DDTweaks.Log.LogInfo($"GetTopWindow: {uiBase.GetType().Name}");
+            Log($"GetTopWindow: {uiBase.GetType().Name}");
             return uiBase;
         }
 

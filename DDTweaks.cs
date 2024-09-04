@@ -26,6 +26,10 @@ public class DDTweaks : BaseUnityPlugin
         modSettings.quickCombat = Config.Bind("General", "Enter to fight", true, "Executes a coup-de-gras if it's safe, otherwise does a full volley if you have the ammo");
         modSettings.itemRarity = Config.Bind("General", "Item qualities", true, "Superior equipment and food strings are themselves coloured instead of tagged with a modifier word that is coloured");
         modSettings.profitSliders = Config.Bind("General", "Profit sliders", true, "Trading sliders will try to jump to the most potential profit");
+        modSettings.tradeDetails = Config.Bind("General", "Show trade detail panel", true, "An extra panel with a summary of the production and demands of existing routes is shown");
+        // modSettings.peopleView = Config.Bind("General", "People shown by name", true,
+            // "Instead of the class being prominent, it's the name of the person, and on the main UI, it shows their name not their level");
+        modSettings.reroll = Config.Bind("General", "Re-roll trait picks", true, "Press backspace to re-roll the 3 skills available to pick when spending trait points");
         Patches.Patch();
         if (modSettings.easyClose.Value)
             gameObject.AddComponent<EasyCloser>();
@@ -33,13 +37,19 @@ public class DDTweaks : BaseUnityPlugin
             gameObject.AddComponent<QuickCombat>();
     }
 
-    // private void Update()
-    // {
-    //     
-    //     if (Input.GetKeyDown(KeyCode.Backspace))
-    //     {
-    //         FileLog.Log("Backspace");
-    //         Singleton<MessageManager>.Instance._queues.Do(x => FileLog.Log($"** {x.Key} {x.Value}"));
-    //     }
-    // }
+    private void Update()
+    {
+        // if (Input.GetKeyDown(KeyCode.Backslash))
+        //     GameMgr.Get<IItemManager>().GetGoods(1002).GoodsCout += 500;
+        //
+        if (!gnivler)
+            return;
+
+        // if (Input.GetKeyDown(KeyCode.Backspace))
+        // {
+        // Singleton<MessageManager>.Instance._queues.Do(x => FileLog.Log($"** {x.Key} {x.Value}"));
+        // var people = GameMgr.Get<IPeopleManager>().Getpeople();
+        // people.AllPeople.Do(x => Patches.Log($"<> {x.Name} {x.RealName} {x.PeopleID}"));
+        //     
+    }
 }
